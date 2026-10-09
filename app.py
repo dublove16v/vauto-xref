@@ -189,10 +189,16 @@ with st.sidebar:
                 st.rerun()
 
 sample_bit = "Sample · " if st.session_state.using_sample else ""
-st.markdown(f"# vAuto <span style='color:#c4531a'>X-Ref</span>", unsafe_allow_html=True)
-st.caption(
+st.markdown(
+    "<h1 style='text-align:center'>vAuto <span style='color:#c4531a'>X-Ref</span></h1>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<p style='text-align:center;margin-top:-0.75rem'>"
     f"{sample_bit}vAuto {format_as_of(books.vautoAsOf)} · Report {format_as_of(books.dmsAsOf)}"
     + (f" · Body list {st.session_state.body_pulled[:10]}" if st.session_state.body_pulled else "")
+    + "</p>",
+    unsafe_allow_html=True,
 )
 if not books.vauto:
     st.info("Open the side panel, upload the vAuto inventory and the report, then Merge uploads.")

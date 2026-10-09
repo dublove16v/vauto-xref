@@ -326,15 +326,15 @@ export function Desk() {
         void ingest(files);
       }}
     >
-      <header className="no-print flex items-center justify-between gap-3 border-b border-line bg-card px-4 py-3 md:px-6">
-        <div className="min-w-0">
-          <div className="flex items-baseline gap-2">
+      <header className="no-print relative flex items-center justify-end gap-3 border-b border-line bg-card px-4 py-3 md:px-6">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-24 text-center sm:px-40">
+          <div className="flex items-baseline justify-center gap-2">
             <h1 className="text-xl font-semibold tracking-tight">
               vAuto <span className="text-copper">X-Ref</span>
             </h1>
             <p className="hidden text-sm text-ink-soft sm:block">Better Way Wholesale</p>
           </div>
-          <p className="truncate text-xs text-ink-soft">
+          <p className="max-w-full truncate text-xs text-ink-soft">
             {usingSample ? "Sample · " : ""}
             vAuto {formatAsOf(books.vautoAsOf)} · Report {formatAsOf(books.dmsAsOf)}
             {kept === "app" ? " · Saved" : kept === "browser" ? " · This computer only" : ""}
