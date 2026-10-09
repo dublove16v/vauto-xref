@@ -73,6 +73,23 @@ def font_css() -> str:
       .stApp {{ background: #f3efe6; color: #1a1814; }}
       [data-testid="stSidebar"] {{ background: #fffcf7; }}
       .block-container {{ padding-top: 1.2rem; }}
+      [data-testid="stFileUploaderDropzone"] {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+      }}
+      [data-testid="stFileUploaderDropzone"] > div {{
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100%;
+      }}
+      [data-testid="stFileUploaderDropzone"] button {{
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }}
       @media print {{
         section[data-testid="stSidebar"], header, [data-testid="stToolbar"],
         [data-testid="stDecoration"], .stDownloadButton, .stButton, footer {{
