@@ -30,7 +30,12 @@ from xref_engine import (
     xref_filename,
 )
 
-st.set_page_config(page_title="vAuto X-Ref", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="vAuto X-Ref",
+    page_icon="static/blue-car.png",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
 
 
 def font_css() -> str:
