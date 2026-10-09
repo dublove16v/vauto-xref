@@ -113,22 +113,29 @@ def ingest(files: list[tuple[str, bytes]]) -> None:
     if not parts:
         st.session_state.notice = " ".join(errors) or "Those files did not have a stock # and VIN."
         return
-    books = pick_books(parts, st.session_state.books)
+    previous = st.session_state.books
+    old_vins = {row.vin for row in previous.vauto}
+    books = pick_books(parts, previous)
     st.session_state.books = books
     st.session_state.using_sample = False
     store.save_desk(books)
     cars = current_cars()
     saved = store.archive_books(books, cars) if books.vauto and books.dms else None
     ready = sum(1 for car in cars if car.ready)
+    replaced_vauto = any(part.get("vauto") for part in parts)
+    removed = len(old_vins - {row.vin for row in books.vauto}) if replaced_vauto else 0
     st.session_state.notice = (
         f"vAuto now {len(books.vauto)} cars from {books.vautoName or 'the upload'}"
         f" · {ready} to be advertised"
         + (f" · report {len(books.dms)} rows" if books.dms else "")
     )
+    if replaced_vauto:
+        st.session_state.notice += f" · removed {removed} not on this vAuto sheet"
     if saved:
         st.session_state.notice += f" · archived {saved}"
     if errors:
         st.session_state.notice += " " + " ".join(errors)
+    st.rerun()
 
 
 def current_cars():
@@ -173,12 +180,14 @@ with st.sidebar:
             ingest(files)
         elif body_up is not None:
             st.session_state.notice = "Body list updated."
+            st.rerun()
         else:
             st.session_state.notice = "Add a vAuto file, a report, or both."
     if st.button("Back to sample", width="stretch"):
         st.session_state.books = load_sample()
         st.session_state.using_sample = True
         st.session_state.notice = "Showing the sample inventory."
+        st.rerun()
     st.divider()
     st.markdown("### Archive")
     archives = store.list_archives()
