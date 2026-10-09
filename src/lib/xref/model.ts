@@ -370,24 +370,6 @@ export function pickBooks(parts: Parsed[], previous?: Books | null): Books {
   const dmsCandidates: { rows: DmsRow[]; asOf: string | null; name: string; separate: boolean; score: number }[] =
     [];
 
-  if (previous && previous.vauto.length) {
-    vautoCandidates.push({
-      rows: previous.vauto,
-      asOf: previous.vautoAsOf,
-      name: previous.vautoName,
-      score: scoreVauto(previous.vauto),
-    });
-  }
-  if (previous && previous.dms.length) {
-    dmsCandidates.push({
-      rows: previous.dms,
-      asOf: previous.dmsAsOf,
-      name: previous.dmsName,
-      separate: previous.dmsSeparate,
-      score: scoreDms(previous.dms, previous.dmsSeparate, previous.dmsAsOf),
-    });
-  }
-
   for (const part of parts) {
     if (part.vauto && part.vauto.length) {
       vautoCandidates.push({
@@ -406,6 +388,26 @@ export function pickBooks(parts: Parsed[], previous?: Books | null): Books {
         score: scoreDms(part.dms, part.dmsSeparate, part.asOf),
       });
     }
+  }
+
+  // A file just uploaded replaces that side, even when it has fewer cars.
+  // The previous list only fills a side this upload did not include.
+  if (!vautoCandidates.length && previous && previous.vauto.length) {
+    vautoCandidates.push({
+      rows: previous.vauto,
+      asOf: previous.vautoAsOf,
+      name: previous.vautoName,
+      score: scoreVauto(previous.vauto),
+    });
+  }
+  if (!dmsCandidates.length && previous && previous.dms.length) {
+    dmsCandidates.push({
+      rows: previous.dms,
+      asOf: previous.dmsAsOf,
+      name: previous.dmsName,
+      separate: previous.dmsSeparate,
+      score: scoreDms(previous.dms, previous.dmsSeparate, previous.dmsAsOf),
+    });
   }
 
   vautoCandidates.sort((a, b) => b.score - a.score);

@@ -707,12 +707,6 @@ def find_header(rows: list[list[Any]]) -> int:
 def pick_books(parts: list[dict[str, Any]], previous: Books | None = None) -> Books:
     vauto_cands: list[tuple[int, list[VautoRow], str | None, str]] = []
     dms_cands: list[tuple[int, list[DmsRow], str | None, str, bool]] = []
-    if previous and previous.vauto:
-        vauto_cands.append((score_vauto(previous.vauto), previous.vauto, previous.vautoAsOf, previous.vautoName))
-    if previous and previous.dms:
-        dms_cands.append(
-            (score_dms(previous.dms, previous.dmsSeparate, previous.dmsAsOf), previous.dms, previous.dmsAsOf, previous.dmsName, previous.dmsSeparate)
-        )
     for part in parts:
         if part.get("error"):
             continue
@@ -723,6 +717,14 @@ def pick_books(parts: list[dict[str, Any]], previous: Books | None = None) -> Bo
             rows = part["dms"]
             separate = bool(part.get("dmsSeparate"))
             dms_cands.append((score_dms(rows, separate, part.get("asOf")), rows, part.get("asOf"), part.get("name") or "", separate))
+    # A file just uploaded replaces that side, even when it has fewer cars.
+    # The previous list only fills a side this upload did not include.
+    if not vauto_cands and previous and previous.vauto:
+        vauto_cands.append((score_vauto(previous.vauto), previous.vauto, previous.vautoAsOf, previous.vautoName))
+    if not dms_cands and previous and previous.dms:
+        dms_cands.append(
+            (score_dms(previous.dms, previous.dmsSeparate, previous.dmsAsOf), previous.dms, previous.dmsAsOf, previous.dmsName, previous.dmsSeparate)
+        )
     vauto_cands.sort(key=lambda item: item[0], reverse=True)
     dms_cands.sort(key=lambda item: item[0], reverse=True)
     vauto = vauto_cands[0] if vauto_cands else None

@@ -119,8 +119,14 @@ def ingest(files: list[tuple[str, bytes]]) -> None:
     store.save_desk(books)
     cars = current_cars()
     saved = store.archive_books(books, cars) if books.vauto and books.dms else None
-    loaded = ", ".join(name for name, _data in files)
-    st.session_state.notice = f"Archived {saved}" if saved else f"Loaded {loaded}"
+    ready = sum(1 for car in cars if car.ready)
+    st.session_state.notice = (
+        f"vAuto now {len(books.vauto)} cars from {books.vautoName or 'the upload'}"
+        f" · {ready} to be advertised"
+        + (f" · report {len(books.dms)} rows" if books.dms else "")
+    )
+    if saved:
+        st.session_state.notice += f" · archived {saved}"
     if errors:
         st.session_state.notice += " " + " ".join(errors)
 
