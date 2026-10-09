@@ -90,6 +90,25 @@ def font_css() -> str:
         margin-left: auto !important;
         margin-right: auto !important;
       }}
+      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
+        display: flex !important;
+        justify-content: center !important;
+        width: 100%;
+        text-align: center !important;
+      }}
+      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] span {{
+        width: 100%;
+        text-align: center !important;
+      }}
+      [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] small,
+      [data-testid="stSidebar"] [data-testid="stFileUploaderDropzoneInstructions"] {{
+        text-align: center !important;
+        width: 100%;
+      }}
+      [data-testid="stSidebar"] button {{
+        justify-content: center !important;
+        text-align: center !important;
+      }}
       @media print {{
         section[data-testid="stSidebar"], header, [data-testid="stToolbar"],
         [data-testid="stDecoration"], .stDownloadButton, .stButton, footer {{
@@ -192,7 +211,7 @@ st.markdown(font_css(), unsafe_allow_html=True)
 
 books = st.session_state.books
 with st.sidebar:
-    st.markdown("### Load")
+    st.markdown("<h3 style='text-align:center;margin:0.2rem 0 0.6rem'>Load</h3>", unsafe_allow_html=True)
     vauto_up = st.file_uploader("vAuto inventory", type=["xlsx", "xls", "csv"], key="vauto_up")
     report_up = st.file_uploader("Report", type=["xlsx", "xls", "csv"], key="report_up")
     body_up = st.file_uploader("Body list", type=["xlsx", "xls", "csv"], key="body_up")
