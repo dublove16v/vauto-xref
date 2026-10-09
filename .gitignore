@@ -1,0 +1,16 @@
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+data/xref.db
+.vercel/
+dist/
+.grok/
+attachments/
+screenshots/
+artifacts/
+fonts/*.b64
+.project_id
+.node_modules.lock
+AGENTS.md
+AGENTS.project.md
