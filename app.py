@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import base64
 from datetime import datetime
-from pathlib import Path
 
 import streamlit as st
 
@@ -32,90 +30,88 @@ from xref_engine import (
     xref_filename,
 )
 
-ROOT = Path(__file__).resolve().parent
-
 st.set_page_config(page_title="vAuto X-Ref", layout="wide", initial_sidebar_state="collapsed")
 
 
-def font_bytes(name: str) -> bytes:
-    otf = ROOT / "fonts" / name
-    if otf.exists():
-        return otf.read_bytes()
-    return base64.b64decode((ROOT / "fonts" / f"{name}.b64").read_text())
-
-
 def font_css() -> str:
-    try:
-        regular = base64.b64encode(font_bytes("CenturyGothicPro.otf")).decode()
-        bold = base64.b64encode(font_bytes("CenturyGothicPro-Bold.otf")).decode()
-    except OSError:
-        return "<style>.stApp { background: #f3efe6; color: #1a1814; }</style>"
-    return f"""
+    return """
     <style>
-      @font-face {{
+      @font-face {
         font-family: "Century Gothic Pro";
-        src: url(data:font/otf;base64,{regular}) format("opentype");
+        src: url("app/static/CenturyGothicPro.otf") format("opentype");
         font-weight: 400;
         font-style: normal;
-      }}
-      @font-face {{
+        font-display: swap;
+      }
+      @font-face {
         font-family: "Century Gothic Pro";
-        src: url(data:font/otf;base64,{bold}) format("opentype");
+        src: url("app/static/CenturyGothicPro-Bold.otf") format("opentype");
+        font-weight: 600;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Century Gothic Pro";
+        src: url("app/static/CenturyGothicPro-Bold.otf") format("opentype");
         font-weight: 700;
         font-style: normal;
-      }}
-      html, body, [class*="css"], .stApp, .stMarkdown, button, input, textarea, label {{
+        font-display: swap;
+      }
+      html, body, .stApp, .stMarkdown, .stCaption, button, input, textarea, label,
+      [data-testid="stWidgetLabel"], [data-testid="stCaptionContainer"],
+      [data-testid="stMarkdownContainer"], [data-testid="stDataFrame"] {
         font-family: "Century Gothic Pro", "Century Gothic", sans-serif !important;
-      }}
-      h1, h2, h3, strong, b, [data-testid="stMetricValue"], .stButton button {{
+      }
+      h1, h2, h3, strong, b, [data-testid="stMetricValue"], .stButton button {
+        font-family: "Century Gothic Pro", "Century Gothic", sans-serif !important;
         font-weight: 700 !important;
-      }}
-      .stApp {{ background: #f3efe6; color: #1a1814; }}
-      [data-testid="stSidebar"] {{ background: #fffcf7; }}
-      .block-container {{ padding-top: 1.2rem; }}
-      [data-testid="stFileUploaderDropzone"] {{
+      }
+      .stApp { background: #f3efe6; color: #1a1814; }
+      [data-testid="stSidebar"] { background: #fffcf7; }
+      .block-container { padding-top: 1.2rem; }
+      [data-testid="stFileUploaderDropzone"] {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: center !important;
         text-align: center !important;
-      }}
-      [data-testid="stFileUploaderDropzone"] > div {{
+      }
+      [data-testid="stFileUploaderDropzone"] > div {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         width: 100%;
-      }}
-      [data-testid="stFileUploaderDropzone"] button {{
+      }
+      [data-testid="stFileUploaderDropzone"] button {
         margin-left: auto !important;
         margin-right: auto !important;
-      }}
-      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {{
+      }
+      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
         display: flex !important;
         justify-content: center !important;
         width: 100%;
         text-align: center !important;
-      }}
-      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] span {{
+      }
+      [data-testid="stSidebar"] [data-testid="stWidgetLabel"] span {
         width: 100%;
         text-align: center !important;
-      }}
+      }
       [data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] small,
-      [data-testid="stSidebar"] [data-testid="stFileUploaderDropzoneInstructions"] {{
+      [data-testid="stSidebar"] [data-testid="stFileUploaderDropzoneInstructions"] {
         text-align: center !important;
         width: 100%;
-      }}
-      [data-testid="stSidebar"] button {{
+      }
+      [data-testid="stSidebar"] button {
         justify-content: center !important;
         text-align: center !important;
-      }}
-      @media print {{
+      }
+      @media print {
         section[data-testid="stSidebar"], header, [data-testid="stToolbar"],
-        [data-testid="stDecoration"], .stDownloadButton, .stButton, footer {{
+        [data-testid="stDecoration"], .stDownloadButton, .stButton, footer {
           display: none !important;
-        }}
-        .stApp {{ background: white !important; }}
-      }}
+        }
+        .stApp { background: white !important; }
+      }
     </style>
     """
 
