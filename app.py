@@ -145,6 +145,19 @@ def current_cars():
     return cars
 
 
+def open_saved_archive() -> None:
+    picked = st.session_state.get("archive_choice") or ""
+    if not picked:
+        return
+    raw = store.archive_books_json(picked)
+    if not raw:
+        return
+    name = next((row["filename"] for row in store.list_archives() if row["id"] == picked), "saved list")
+    st.session_state.books = Books.from_json(raw)
+    st.session_state.using_sample = False
+    st.session_state.notice = f"Opened {name}"
+
+
 def visible_cars(cars):
     hide = st.session_state.hide_wholesale
     listed = [car for car in cars if not (hide and car.wholesale)]
@@ -189,19 +202,23 @@ with st.sidebar:
         st.session_state.notice = "Showing the sample inventory."
         st.rerun()
     st.divider()
-    st.markdown("### Archive")
+    st.markdown("<h3 style='text-align:center;margin:0.2rem 0 0.6rem'>Archive</h3>", unsafe_allow_html=True)
     archives = store.list_archives()
     if not archives:
-        st.caption("A merged inventory and report is saved here automatically.")
-    for row in archives:
-        label = f"{row['filename']} · {row['ready']} to advertise"
-        if st.button(label, key=f"arch-{row['id']}", width="stretch"):
-            raw = store.archive_books_json(row["id"])
-            if raw:
-                st.session_state.books = Books.from_json(raw)
-                st.session_state.using_sample = False
-                st.session_state.notice = f"Opened {row['filename']}"
-                st.rerun()
+        st.markdown(
+            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>A merged inventory and report is saved here automatically.</p>",
+            unsafe_allow_html=True,
+        )
+    else:
+        labels = {row["id"]: f"{row['filename']} · {row['ready']} to advertise" for row in archives}
+        st.selectbox(
+            "Archive",
+            options=[""] + list(labels),
+            format_func=lambda archive_id: "Choose a saved list" if not archive_id else labels[archive_id],
+            label_visibility="collapsed",
+            key="archive_choice",
+            on_change=open_saved_archive,
+        )
 
 sample_bit = "Sample · " if st.session_state.using_sample else ""
 st.markdown(
