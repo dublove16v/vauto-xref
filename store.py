@@ -121,3 +121,98 @@ def archive_csv(archive_id: str) -> tuple[str, str] | None:
     if not row:
         return None
     return row["filename"], row["csv"]
+
+
+def export_snapshot() -> str:
+    """JSON the browser can keep after the server disk is wiped."""
+    import json
+
+    db = connect()
+    desk = db.execute("select books_json, updated_at from desk where id = 'current'").fetchone()
+    archives = db.execute(
+        "select id, saved_at, filename, vauto_name, dms_name, total, ready, csv, books_json, content_hash "
+        "from archives order by saved_at desc limit 30"
+    ).fetchall()
+    db.close()
+    rows = [dict(row) for row in archives]
+    desk_json = desk["books_json"] if desk else None
+    desk_at = desk["updated_at"] if desk else None
+
+    def pack(items: list[dict], keep_books: int) -> str:
+        slim = []
+        for index, item in enumerate(items):
+            copy = dict(item)
+            if index >= keep_books:
+                copy["books_json"] = None
+            slim.append(copy)
+        return json.dumps({"desk": desk_json, "deskSavedAt": desk_at, "archives": slim}, separators=(",", ":"))
+
+    for keep_books in (8, 3, 1, 0):
+        for count in (len(rows), 6, 3, 1, 0):
+            text = pack(rows[:count], keep_books)
+            if len(text) <= 4_500_000:
+                return text
+    return pack([], 0)
+
+
+def restore_snapshot(raw: str) -> Books | None:
+    """Put a browser snapshot back on a fresh server. Returns the desk when it should be shown."""
+    import json
+
+    try:
+        data = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    db = connect()
+    for item in data.get("archives") or []:
+        if not isinstance(item, dict):
+            continue
+        csv = item.get("csv")
+        archive_id = item.get("id")
+        if not isinstance(csv, str) or not csv or not isinstance(archive_id, str) or not archive_id:
+            continue
+        digest = item.get("content_hash")
+        if not isinstance(digest, str) or not digest:
+            digest = hashlib.sha256(csv.encode()).hexdigest()
+        try:
+            db.execute(
+                "insert into archives (id, saved_at, filename, vauto_name, dms_name, total, ready, csv, books_json, content_hash) "
+                "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    archive_id[:80],
+                    str(item.get("saved_at") or ""),
+                    str(item.get("filename") or "vauto xref.csv")[:180],
+                    str(item.get("vauto_name") or ""),
+                    str(item.get("dms_name") or ""),
+                    int(item.get("total") or 0),
+                    int(item.get("ready") or 0),
+                    csv,
+                    item.get("books_json") if isinstance(item.get("books_json"), str) else "",
+                    digest,
+                ),
+            )
+        except sqlite3.IntegrityError:
+            pass
+    restored: Books | None = None
+    desk_json = data.get("desk")
+    if isinstance(desk_json, str) and desk_json:
+        incoming = str(data.get("deskSavedAt") or "")
+        existing = db.execute("select updated_at from desk where id = 'current'").fetchone()
+        if not existing or (incoming and incoming > existing["updated_at"]):
+            try:
+                books = Books.from_json(desk_json)
+            except (TypeError, ValueError, KeyError):
+                books = None
+            if books and books.vauto:
+                db.execute(
+                    "insert into desk (id, books_json, updated_at) values ('current', ?, ?) "
+                    "on conflict(id) do update set books_json = excluded.books_json, updated_at = excluded.updated_at",
+                    (books.to_json(), incoming or datetime.now(timezone.utc).isoformat()),
+                )
+                restored = books
+    db.commit()
+    db.close()
+    return restored
+

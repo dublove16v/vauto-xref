@@ -7,6 +7,7 @@ from datetime import datetime
 import streamlit as st
 
 import store
+import browser_store
 from xref_engine import (
     FILTERS,
     FILTER_LABEL,
@@ -110,6 +111,11 @@ def font_css() -> str:
         justify-content: center !important;
         text-align: center !important;
       }
+      div[data-testid="stCustomComponentV1"] {
+        height: 0 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
       @media print {
         section[data-testid="stSidebar"], header, [data-testid="stToolbar"],
         [data-testid="stDecoration"], .stDownloadButton, .stButton, footer {
@@ -136,6 +142,33 @@ def ensure_state() -> None:
         st.session_state.body_jobs = jobs
         st.session_state.body_pulled = pulled
     st.session_state.setdefault("upload_sig", "")
+
+
+def remember() -> None:
+    payload = st.session_state.pop("pending_snapshot", None)
+    raw = browser_store.browser_store(payload)
+    if st.session_state.get("browser_seen"):
+        return
+    if raw is None:
+        return
+    st.session_state.browser_seen = True
+    if raw:
+        restored = store.restore_snapshot(raw)
+        if restored and restored.vauto:
+            st.session_state.books = restored
+            st.session_state.using_sample = False
+            st.session_state.notice = "Opened the saved list from this browser."
+            return
+    books = st.session_state.get("books")
+    if books and not st.session_state.get("using_sample") and books.vauto and payload is None:
+        queue_snapshot()
+        st.rerun()
+
+
+def queue_snapshot() -> None:
+    if st.session_state.get("using_sample"):
+        return
+    st.session_state.pending_snapshot = store.export_snapshot()
 
 
 def ingest(files: list[tuple[str, bytes]]) -> None:
@@ -172,6 +205,7 @@ def ingest(files: list[tuple[str, bytes]]) -> None:
         st.session_state.notice += f" · archived {saved}"
     if errors:
         st.session_state.notice += " " + " ".join(errors)
+    queue_snapshot()
     st.rerun()
 
 
@@ -192,6 +226,8 @@ def open_saved_archive() -> None:
     name = next((row["filename"] for row in store.list_archives() if row["id"] == picked), "saved list")
     st.session_state.books = Books.from_json(raw)
     st.session_state.using_sample = False
+    store.save_desk(st.session_state.books)
+    queue_snapshot()
     st.session_state.notice = f"Opened {name}"
 
 
@@ -208,6 +244,10 @@ def visible_cars(cars):
 
 
 ensure_state()
+remember()
+if not st.session_state.get("browser_seen"):
+    st.markdown("<p style='text-align:center'>Opening saved lists…</p>", unsafe_allow_html=True)
+    st.stop()
 st.markdown(font_css(), unsafe_allow_html=True)
 
 books = st.session_state.books
@@ -243,7 +283,7 @@ with st.sidebar:
     archives = store.list_archives()
     if not archives:
         st.markdown(
-            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>A merged inventory and report is saved here automatically.</p>",
+            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>A merged inventory and report is saved in this browser. An update does not erase it.</p>",
             unsafe_allow_html=True,
         )
     else:
@@ -255,6 +295,10 @@ with st.sidebar:
             label_visibility="collapsed",
             key="archive_choice",
             on_change=open_saved_archive,
+        )
+        st.markdown(
+            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>Kept in this browser. An update does not erase it.</p>",
+            unsafe_allow_html=True,
         )
 
 sample_bit = "Sample · " if st.session_state.using_sample else ""
