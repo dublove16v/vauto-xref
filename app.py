@@ -280,7 +280,7 @@ with st.sidebar:
     archives = store.list_archives()
     if not archives:
         st.markdown(
-            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>A merged inventory and report is saved in this browser. An update does not erase it.</p>",
+            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>Saved in this browser. If this line is new and your lists are still here, the update kept them.</p>",
             unsafe_allow_html=True,
         )
     else:
@@ -294,7 +294,7 @@ with st.sidebar:
             on_change=open_saved_archive,
         )
         st.markdown(
-            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>Kept in this browser. An update does not erase it.</p>",
+            "<p style='text-align:center;color:#6b645c;font-size:0.85rem'>Saved in this browser. If this line is new and your lists are still here, the update kept them.</p>",
             unsafe_allow_html=True,
         )
 
