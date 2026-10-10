@@ -245,9 +245,6 @@ def visible_cars(cars):
 
 ensure_state()
 remember()
-if not st.session_state.get("browser_seen"):
-    st.markdown("<p style='text-align:center'>Opening saved lists…</p>", unsafe_allow_html=True)
-    st.stop()
 st.markdown(font_css(), unsafe_allow_html=True)
 
 books = st.session_state.books

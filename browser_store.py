@@ -12,7 +12,7 @@ KEY = "vauto-xref-browser-v1"
 
 
 def browser_store(payload: str | None = None) -> str | None:
-    value = _store(storeKey=KEY, payload=payload, default=None, key="vauto_browser_store")
+    value = _store(storeKey=KEY, payload=payload, height=0, default=None, key="vauto_browser_store")
     if value is None:
         return None
     return str(value)
